@@ -1,0 +1,140 @@
+<?php
+
+
+
+/**
+ * Implements hook_library_info().
+ */
+function pannellum_library_info() {
+  $libraries['pannellum'] = array(
+    'title' => 'Pannellum',
+    'website' => 'https://github.com/mpetroff/pannellum/',
+    'version' => '2.4.1',
+  );
+
+  return $libraries;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function pannellum_theme() {
+  $theme = array(
+    'pannellum_iframe' => array(
+      'variables' => array(
+        'file' => NULL,
+        'file_url' => NULL,
+        'iframe_src' => NULL,
+        'width' => NULL,
+        'height' => NULL,
+      ),
+      'template' => 'templates/pannellum_iframe',
+    ),
+  );
+  return $theme;
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function pannellum_field_formatter_info() {
+  return array(
+    'pannellum_default' => array(
+      'label' => t('Pannellum panoramic viewer'),
+      'description' => 'Use the panoramic viewer (files uploaded should be panoramic images).',
+      'field types' => array('image'),
+      'settings' => array(
+        'keep_pannellum' => TRUE,
+        'width' => '100%',
+        'height' => '600px',
+        'autoLoad' => TRUE,
+        'autoRotate' => -2,
+      ),
+    ),
+  );
+}
+
+function pannellum_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+
+  if ($display['type'] == 'pannellum_default') {
+    $element['width'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Width',
+      '#default_value' => $settings['width'],
+      '#description' => t('Width of the viewer. Ex: 250px or 100%'),
+    );
+    $element['height'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Height',
+      '#default_value' => $settings['height'],
+      '#description' => t('Height of the viewer. Ex: 250px or 100%'),
+    );
+    $element['autoLoad'] = array(
+      '#type' => 'checkbox',
+      '#title' => 'Auto Load',
+      '#default_value' => $settings['autoLoad'],
+      '#description' => t('Automatically load the panorama?'),
+    );
+    $element['autoRotate'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Auto Rotate',
+      '#default_value' => $settings['autoRotate'],
+      '#description' => t('The parameter’s value should be a number, with the value specifying the rotation speed in degrees per second; positive is counter-clockwise, and negative is clockwise.'),
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function pannellum_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  if ($display['type'] == 'pannellum_default') {
+    return t("Width: @width, Height: @height, autoLoad: @autoLoad, autoRotate: @autoRotate", array('@width' => $settings['width'] , '@height' => $settings['height'], '@autoLoad' => $settings['autoLoad'], '@autoRotate' => $settings['autoRotate']));
+  }
+
+  return '';
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function pannellum_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  $settings = $display['settings'];
+  switch ($display['type']) {
+    case 'pannellum_default':
+      foreach ($items as $delta => $item) {
+        if (strpos($item['filemime'], 'jpeg')) {
+          $autoLoad = $autoRotate = '';
+          $file_url = file_create_url($item['uri']);
+          $library_path = backdrop_get_path('module', 'pannellum') . '/libraries/pannellum';
+          if ($settings['autoLoad']) {
+            $autoLoad = '&autoLoad=true';
+          }
+          if (!empty($settings['autoRotate'])) {
+            $autoRotate = '&autoRotate=' . check_plain($settings['autoRotate']);
+          }
+          $iframe_src = file_create_url($library_path . '/standalone/pannellum.htm') . '?panorama=' . rawurlencode($file_url) . $autoLoad . $autoRotate;
+
+          $element[$delta] = array(
+            '#theme' => 'pannellum_iframe',
+            '#file' => (object) $item,
+            '#file_url' => $file_url,
+            '#iframe_src' => $iframe_src,
+            '#width'  => $settings['width'],
+            '#height'  => $settings['height'],
+          );
+        }
+      }
+      break;
+  }
+  return $element;
+}

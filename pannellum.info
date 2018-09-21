@@ -1,0 +1,7 @@
+type = module
+name = Pannellum
+description = Display draggable panoramic images with the Pannellum viewer.
+package = Field
+backdrop = 1.x
+
+dependencies[] = file
