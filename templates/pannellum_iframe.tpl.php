@@ -1,8 +1,8 @@
 <iframe
-  class="pdf"
-  webkitallowfullscreen 
-  mozallowfullscreen 
-  allowfullscreen 
+  class="pannellum"
+  webkitallowfullscreen
+  mozallowfullscreen
+  allowfullscreen
   frameborder="no"
   width="<?php print $width; ?>"
   height="<?php print $height; ?>"
