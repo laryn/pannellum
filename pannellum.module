@@ -19,7 +19,7 @@ function pannellum_library_info() {
 /**
  * Implements hook_theme().
  */
-function pannellum_theme() {
+function pannellum_theme($existing, $type, $theme, $path) {
   $theme = array(
     'pannellum_iframe' => array(
       'variables' => array(
@@ -32,7 +32,7 @@ function pannellum_theme() {
       'template' => 'templates/pannellum_iframe',
       'attached' => array(
         'css' => array(
-          $path . '/css/pannellum.css',
+          $path . '/css/pannellum.css' => array(),
         ),
       )
     ),
